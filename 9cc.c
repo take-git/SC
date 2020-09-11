@@ -112,28 +112,27 @@ int main(int argc, char **argv) {
     fprintf(stderr, "引数の個数が正しくありません\n");
     return 1;
   }
+  // トークナイズする
+  token = tokenize(argv[1]);
 
-  char *p = argv[1];
-
+  // アセンブリの前半
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   printf("main:\n");
-  printf("  mov rax, %ld\n", strtol(p, &p, 10)); // strtol
 
-  while (*p) {
-    if (*p == '+') {
-      p++;
-      printf("  add rax, %ld\n", strtol(p, &p, 10)); // long int なので、ldにする必要がある。以下も同様
+  // 式の最初は数でなければならないので、それをチェックして
+  // 最初のmov命令を出力
+  printf("  mov rax, %d\n", expect_number());
+
+  // ` + <number> ` や ` - <number> `というトークンの並びを消費しつつアセンブリを出力
+  while (!at_eof()) {
+    if (consume('+')) {
+      printf("  add rax, %d\n", expect_number());
       continue;
     }
 
-    if (*p == '-') {
-      p++;
-      printf("  sub rax, %ld\n", strtol(p, &p, 10));
-      continue;
-    }
-
-    fprintf(stderr, "予期しない文字です： '%c'\n", *p);    
+    expect('-');
+    printf("  sub rax, %d\n", expect_number());
   }
 
   printf("  ret\n");
