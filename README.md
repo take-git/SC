@@ -13,6 +13,24 @@ $ docker build -t compilerbook https://www.sigbus.info/compilerbook/Dockerfile
 $ docker run -it -v $PWD/:/9cc compilerbook
 ```
 
+# 利用方法について
+仮想環境にログインしたら、ccを利用し、9cc.c（今回書いているプログラム本体）をコンパイルし、実行ファイルを9ccという名前で作成する。    
+ちなみに`-o`オプションは実行ファイル名に任意の名前をつけることができるオプションで、指定しないと`a.out`になる。  
+実行ファイルに引数として数式を渡し、作成されるアセンブラを`tmp.s`と命名する。  
+
+```zsh
+$ cc -o 9cc 9cc.c
+$ ./9cc 123 > tmp.s
+```
+
+```zsh
+$ cc -o tmp tmp.s
+$ ./tmp
+$ echo $?
+123
+```
+shellでは直前の終了コードが$?に格納されていて、こいつを出力することで結果を確認することができる。
+
 # C言語の構文について
 知らない関数などを調べてまとめる。
 
