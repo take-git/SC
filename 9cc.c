@@ -17,13 +17,13 @@ int main(int argc, char **argv) {
   while (*p) {
     if (*p == '+') {
       p++;
-      printf("  add rax, %ldl\n", strtol(p, &p, 10)); // long int なので、ldにする必要がある。以下も同様
+      printf("  add rax, %ld\n", strtol(p, &p, 10)); // long int なので、ldにする必要がある。以下も同様
       continue;
     }
 
     if (*p == '-') {
       p++;
-      printf("  sub rax, %ldl\n", strtol(p, &p, 10));
+      printf("  sub rax, %ld\n", strtol(p, &p, 10));
       continue;
     }
 
