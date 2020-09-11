@@ -1,4 +1,4 @@
-# Simple Compiler
+# Simple Clang Compiler
 
 # Description
 本プログラムはRui Ueyama氏による「低レイヤを知りたい人のためのCコンパイラ作成入門」に習って作成しているC言語によるCコンパイラプロジェクト。
