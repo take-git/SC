@@ -1,7 +1,7 @@
 # Simple Clang Compiler
 
 # Description
-本プログラムはRui Ueyama氏による「低レイヤを知りたい人のためのCコンパイラ作成入門」に習って作成しているC言語によるCコンパイラプロジェクト。
+本プログラムはRui Ueyama氏による「[低レイヤを知りたい人のためのCコンパイラ作成入門](https://www.sigbus.info/compilerbook)」に習って作成しているC言語によるCコンパイラプロジェクト。
 
 # 環境構築
 rui ueyama氏のブログよりdockerfileを拝借する
