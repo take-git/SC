@@ -66,7 +66,8 @@ bool consume(char op) {
 // それ以外の場合にはエラーを報告する。
 void expect(char op) {
   if (token->kind != TK_RESERVED || token->str[0] != op)
-    error("`%c'ではありません", op);
+    // error("`%c'ではありません", op);
+    error_at(token->str, "数ではありません");
   token = token->next;
 }
 
