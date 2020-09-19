@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+// ---------------------------------------- 型
+
 // 入力プログラム全体
 char *user_input;
 
@@ -50,6 +52,8 @@ struct Token
 
 // 現在着目しているトークン
 Token *token;
+
+// ---------------------------------------- 関数 
 
 // エラー箇所を報告する
 void error_at(char *loc, char *fmt, ...) {
@@ -146,6 +150,8 @@ Token *tokenize(char *p) {
   new_token(TK_EOF, cur, p);
   return head.next;
 }
+
+// ---------------------------------------- main
 
 int main(int argc, char **argv) {
   if (argc != 2) {
