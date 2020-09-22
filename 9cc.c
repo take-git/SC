@@ -94,6 +94,10 @@ Node *new_node_num(int val) {
   return node;
 }
 
+Node *expr();
+Node *mul();
+Node *primary();
+
 Node *expr() {
   Node *node = mul();
 
@@ -120,6 +124,7 @@ Node *mul() {
   }
 }
 
+// primary = "(" expr ")" | num
 Node *primary() {
   // 次のトークンが"("なら、"(" expr ")"のはず
   if (consume('(')) {
@@ -243,7 +248,9 @@ int main(int argc, char **argv) {
     return 1;
   }
   // トークナイズする
-  token = tokenize(argv[1]);
+  user_input = argv[1];
+  token = tokenize(user_input);
+  Node *node = expr();
 
   // アセンブリの前半
   printf(".intel_syntax noprefix\n");
@@ -254,17 +261,10 @@ int main(int argc, char **argv) {
   // 最初のmov命令を出力
   printf("  mov rax, %d\n", expect_number());
 
-  // ` + <number> ` や ` - <number> `というトークンの並びを消費しつつアセンブリを出力
-  while (!at_eof()) {
-    if (consume('+')) {
-      printf("  add rax, %d\n", expect_number());
-      continue;
-    }
+  // 抽象構文木を降りながらコード生成
+  gen(node);
 
-    expect('-');
-    printf("  sub rax, %d\n", expect_number());
-  }
-
+  printf("  pop rax\n");
   printf("  ret\n");
   return 0;
 }
