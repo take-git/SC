@@ -63,6 +63,15 @@ bool consume(char op) {
   return true;
 }
 
+// エラーを報告するための関数
+// printfと同じ引数をとる
+void error(char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  fprintf(stderr, "\n");
+  exit(1);
+}
 
 // エラー箇所を報告する
 void error_at(char *loc, char *fmt, ...) {
@@ -96,16 +105,6 @@ int expect_number() {
   int val = token->val;
   token = token->next;
   return val;
-}
-
-// エラーを報告するための関数
-// printfと同じ引数をとる
-void error(char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  vfprintf(stderr, fmt, ap);
-  fprintf(stderr, "\n");
-  exit(1);
 }
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
