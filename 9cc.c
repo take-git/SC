@@ -7,35 +7,12 @@
 
 // ---------------------------------------- 型
 
-// 入力プログラム全体
-char *user_input;
-
 // トークンの種類を定義
 typedef enum {
   TK_RESERVED,  // 記号
   TK_NUM,       // 整数トークン
   TK_EOF,       // 入力の終わりを表すトークン
 } TokenKind;
-
-// 抽象構文木のノードの種類
-typedef enum {
-  ND_ADD, // +
-  ND_SUB, // -
-  ND_MUL, // *
-  ND_DIV, // /
-  ND_NUM, // 整数
-} NodeKind;
-
-typedef struct Node Node;
-
-// 抽象構文木のノードの型
-struct Node
-{
-  NodeKind kind; // ノードの型
-  Node *lhs; // 左辺
-  Node *rhs; // 右辺
-  int val; // kindがND_NUMの場合のみ使う
-};
 
 
 typedef struct Token Token;
@@ -50,18 +27,11 @@ struct Token
   char *str;
 };
 
+// 入力プログラム全体
+char *user_input;
+
 // 現在着目しているトークン
 Token *token;
-
-// ---------------------------------------- 関数 
-
-// 次のトークンが期待している記号の時には、トークンを１つ読み進めて、真を返す。それ以外の場合には偽を返す。
-bool consume(char op) {
-  if (token->kind != TK_RESERVED || token->str[0] != op)
-    return false;
-  token = token->next;
-  return true;
-}
 
 // エラーを報告するための関数
 // printfと同じ引数をとる
@@ -87,12 +57,40 @@ void error_at(char *loc, char *fmt, ...) {
   exit(1);
 }
 
+// 次のトークンが期待している記号の時には、トークンを１つ読み進めて、真を返す。それ以外の場合には偽を返す。
+bool consume(char op) {
+  if (token->kind != TK_RESERVED || token->str[0] != op)
+    return false;
+  token = token->next;
+  return true;
+}
+
+// 抽象構文木のノードの種類
+typedef enum {
+  ND_ADD, // +
+  ND_SUB, // -
+  ND_MUL, // *
+  ND_DIV, // /
+  ND_NUM, // 整数
+} NodeKind;
+
+typedef struct Node Node;
+
+// 抽象構文木のノードの型
+struct Node
+{
+  NodeKind kind; // ノードの型
+  Node *lhs; // 左辺
+  Node *rhs; // 右辺
+  int val; // kindがND_NUMの場合のみ使う
+};
+
 // 次のトークンが期待している記号の時には、トークンを１つ読み進める。
 // それ以外の場合にはエラーを報告する。
 void expect(char op) {
   if (token->kind != TK_RESERVED || token->str[0] != op)
     // error("`%c'ではありません", op);
-    error_at(token->str, "数ではありません");
+    error_at(token->str, "expected '%c'", op);
   token = token->next;
 }
 
@@ -107,17 +105,28 @@ int expect_number() {
   return val;
 }
 
-Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
+bool at_eof() {
+  return token->kind == TK_EOF;
+}
+
+Node *new_node(NodeKind kind) {
   Node *node = calloc(1, sizeof(Node));
+  // node->kind = kind;
+  // node->lhs = lhs;
+  // node->rhs = rhs;
   node->kind = kind;
+  return node;
+}
+
+Node *new_binary(NodeKind kind, Node *lhs, Node *rhs) {
+  Node *node = new_node(kind);
   node->lhs = lhs;
   node->rhs = rhs;
   return node;
 }
 
-Node *new_node_num(int val) {
-  Node *node = calloc(1, sizeof(Node));
-  node->kind = ND_NUM;
+Node *new_num(int val) {
+  Node *node = new_node(ND_NUM);
   node->val = val;
   return node;
 }
@@ -131,9 +140,9 @@ Node *expr() {
 
   for (;;) {
     if (consume('+'))
-      node = new_node(ND_ADD, node, mul());
+      node = new_binary(ND_ADD, node, mul());
     else if (consume('-'))
-      node = new_node(ND_SUB, node, mul());
+      node = new_binary(ND_SUB, node, mul());
     else
       return node;
   }
@@ -144,9 +153,9 @@ Node *mul() {
 
   for (;;) {
     if (consume('*'))
-      node = new_node(ND_MUL, node, primary());
+      node = new_binary(ND_MUL, node, primary());
     else if (consume('/'))
-      node = new_node(ND_DIV, node, primary());
+      node = new_binary(ND_DIV, node, primary());
     else
       return node;
   }
@@ -162,11 +171,7 @@ Node *primary() {
   }
 
   // そうでなければ数値のはず
-  return new_node_num(expect_number());
-}
-
-bool at_eof() {
-  return token->kind == TK_EOF;
+  return new_num(expect_number());
 }
 
 // 新しいトークンを作成してcurにつなげる
@@ -179,7 +184,8 @@ Token *new_token(TokenKind kind, Token *cur, char *str) {
 }
 
 // 入力文字列pをトークナイズしてそれを返す
-Token *tokenize(char *p) {
+Token *tokenize() {
+  char *p = user_input;
   Token head;
   head.next = NULL;
   Token *cur = &head;
@@ -191,7 +197,8 @@ Token *tokenize(char *p) {
       continue;
     }
 
-    if (*p == '+' || *p == '-') {
+    // if (*p == '+' || *p == '-') {
+    if (strchr("+-*/()", *p)) {
       cur = new_token(TK_RESERVED, cur, p++);
       continue;
     }
@@ -202,7 +209,8 @@ Token *tokenize(char *p) {
       continue;
     }
 
-    error("トークナイズできません");
+    // error("トークナイズできません");
+    error_at(p, "invalid token");
   }
 
   new_token(TK_EOF, cur, p);
@@ -244,12 +252,13 @@ void gen(Node *node) {
 
 int main(int argc, char **argv) {
   if (argc != 2) {
-    fprintf(stderr, "引数の個数が正しくありません\n");
-    return 1;
+    //fprintf(stderr, "引数の個数が正しくありません\n");
+    //return 1;
+    error("%s: invalid number of arguments", argv[0]);
   }
   // トークナイズする
   user_input = argv[1];
-  token = tokenize(user_input);
+  token = tokenize();
   Node *node = expr();
 
   // アセンブリの前半
@@ -259,7 +268,7 @@ int main(int argc, char **argv) {
 
   // 式の最初は数でなければならないので、それをチェックして
   // 最初のmov命令を出力
-  printf("  mov rax, %d\n", expect_number());
+  // printf("  mov rax, %d\n", expect_number());
 
   // 抽象構文木を降りながらコード生成
   gen(node);
